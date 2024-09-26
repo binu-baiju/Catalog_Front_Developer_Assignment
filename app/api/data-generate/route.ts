@@ -1,3 +1,4 @@
+import { Data } from "@/lib/types";
 import { NextRequest, NextResponse } from "next/server";
 
 // Function to generate random data based on the seed and number of days
@@ -19,10 +20,7 @@ export async function GET(req: NextRequest) {
   const days = Number(searchParams.get("days")) || 7;
   const seed = Number(searchParams.get("seed")) || Math.random();
 
-  console.log("Days:", days);
-  console.log("Seed:", seed);
-
-  const data = await generateData(days, seed);
+  const data: Data[] = generateData(days, seed);
 
   return NextResponse.json(data, { status: 200 });
 }
