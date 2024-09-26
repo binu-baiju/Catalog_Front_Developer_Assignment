@@ -8,89 +8,14 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  TooltipProps,
   CartesianGrid,
 } from "recharts";
 import { Maximize2, Minimize2, Plus, X } from "lucide-react";
-import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-
-const timePeriods = {
-  "1d": 1,
-  "3d": 3,
-  "1w": 7,
-  "1m": 30,
-  "6m": 180,
-  "1y": 365,
-  max: 1825,
-} as const;
-
-type Period = keyof typeof timePeriods;
-
-const CustomTooltip = ({
-  active,
-  payload,
-  label,
-}: TooltipProps<number, string>) => {
-  if (active && payload && payload[0]?.value !== undefined) {
-    return (
-      <div className="bg-gray-900 text-white p-2 rounded shadow-lg">
-        <p className="text-xs">{`$${payload[0].value.toFixed(2)}`}</p>
-        <p className="text-xs">{label}</p>
-      </div>
-    );
-  }
-  return null;
-};
-
-type Data = {
-  time: string;
-  price: number;
-};
-
-const SkeletonUI = () => (
-  <div className="animate-pulse">
-    <div className="mb-6">
-      <div className="h-16 w-64 bg-gray-200 rounded"></div>
-      <div className="h-6 w-48 mt-2 bg-gray-200 rounded"></div>
-    </div>
-
-    <nav className="flex space-x-6 mb-6">
-      {[...Array(5)].map((_, i) => (
-        <div key={i} className="h-6 w-20 bg-gray-200 rounded"></div>
-      ))}
-    </nav>
-
-    <div className="flex justify-between items-center mb-4">
-      <div className="flex space-x-2">
-        <div className="h-8 w-24 bg-gray-200 rounded"></div>
-        <div className="h-8 w-24 bg-gray-200 rounded"></div>
-      </div>
-      <div className="flex space-x-2">
-        {[...Array(7)].map((_, i) => (
-          <div key={i} className="h-8 w-12 bg-gray-200 rounded"></div>
-        ))}
-      </div>
-    </div>
-
-    <div className="h-96 relative ">
-      <div className="absolute inset-0 border-gray-500 border-0  rounded"></div>
-      <div className="absolute bottom-0 left-0 right-0 h-24 ">
-        <div className="w-full h-full flex items-end">
-          {[...Array(30)].map((_, i) => (
-            <div
-              key={i}
-              className="flex-1 bg-gray-300"
-              style={{ height: `${Math.random() * 100}%` }}
-            />
-          ))}
-        </div>
-      </div>
-      <div className="absolute top-2 right-2 bg-gray-300 w-16 h-6 rounded"></div>
-      <div className="absolute bottom-28 right-2 bg-gray-300 w-16 h-6 rounded"></div>
-    </div>
-  </div>
-);
+import SkeltonUI from "@/ui/SkeltonUI";
+import CustomTooltip from "@/ui/CustomTooltip";
+import { fetchData, timePeriods } from "@/lib/utils";
+import { Data, Period } from "@/lib/types";
 
 export default function CryptoChart() {
   const [selectedPeriod, setSelectedPeriod] = useState<Period>("1w");
@@ -108,13 +33,6 @@ export default function CryptoChart() {
       setSeed(generateSeed());
     }
   }, [seed, generateSeed]);
-
-  const fetchData = async (period: Period, currentSeed: string) => {
-    const response = await axios.get("/api/data-generate", {
-      params: { days: timePeriods[period], seed: currentSeed },
-    });
-    return response.data;
-  };
 
   const { data, isLoading, isError, refetch } = useQuery<Data[]>({
     queryKey: ["cryptoData", selectedPeriod, seed],
@@ -172,7 +90,7 @@ export default function CryptoChart() {
           isFullscreen ? "fixed inset-0 z-50" : "max-w-4xl mx-auto"
         }`}
       >
-        <SkeletonUI />
+        <SkeltonUI />
       </div>
     );
   }
@@ -195,17 +113,17 @@ export default function CryptoChart() {
 
   return (
     <div
-      className={`bg-white p-6 font-sans ${
+      className={`bg-white p-2 md:p-6 font-sans ${
         isFullscreen ? "fixed inset-0 z-50" : "max-w-4xl mx-auto"
       }`}
     >
       <div className="mb-6">
-        <h1 className="text-6xl font-bold text-gray-900">
+        <h1 className="text-5xl md:text-6xl  font-bold text-gray-900">
           {currentPrice}
           <span className="text-2xl font-normal ml-2 text-gray-500">USD</span>
         </h1>
         <p
-          className={`text-xl mt-2 ${
+          className={`text-lg md:text-xl mt-2 ${
             Number(percentageChange) >= 0 ? "text-green-500" : "text-red-500"
           }`}
         >
@@ -232,7 +150,7 @@ export default function CryptoChart() {
         </a>
       </nav>
 
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex md:justify-between md:items-center mb-4 flex-col gap-2 md:flex-row  ">
         <div className="flex items-center space-x-2">
           <button
             onClick={toggleFullscreen}
@@ -279,7 +197,6 @@ export default function CryptoChart() {
       <div className="h-96 relative">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
-            className=""
             data={data}
             margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
           >
